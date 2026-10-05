@@ -24,4 +24,4 @@ Thumbs.db
 # artefatos de debug
 *.dSYM/
 core
-*.log
+*.log.github/workflows/
