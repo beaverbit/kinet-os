@@ -63,6 +63,10 @@ If your change touches:
 
 You must include before/after latency measurements in the PR description.
 
+## Repository layout
+
+KinetOS uses `.gitkeep` files to version empty directories that are part of the planned structure. When a directory gains real content, delete its `.gitkeep`.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under GPLv2 (see `LICENSE`).
