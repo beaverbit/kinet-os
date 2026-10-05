@@ -1,0 +1,36 @@
+# KinetOS latency-focused config
+# tuned for minimal tail latency (p99/p999), not for debugging
+
+ARCH=x86_64
+BOOT_PROTOCOL=multiboot2
+
+# optimization
+OPT_LEVEL=3
+DEBUG_INFO=n
+FRAME_POINTER=n
+KASAN=n
+UBSAN=n
+LTO=y
+
+# features
+SCHED_RT=y
+PREEMPT=y
+HIGH_RES_TIMERS=y
+NO_HZ_FULL=y
+SMP=y
+MAX_CPUS=64
+CPU_ISOLATION=y
+
+# memory
+PAGE_SIZE=4096
+HEAP_SIZE_MB=32
+
+# debug (all off in this profile)
+PANIC_ON_BUG=n
+STACK_CANARY=n
+SERIAL_DEBUG=n
+VERBOSE_BOOT=n
+
+# latency tuning
+IRQ_THREADS=y
+SCHED_LATENCY_TARGET_NS=50000

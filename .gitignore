@@ -1,0 +1,27 @@
+# build
+build/
+out/
+*.o
+*.a
+*.so
+*.elf
+*.bin
+*.iso
+*.img
+*.map
+*.sym
+
+# editores
+.vscode/
+.idea/
+*.swp
+*~
+
+# sistema
+.DS_Store
+Thumbs.db
+
+# artefatos de debug
+*.dSYM/
+core
+*.log

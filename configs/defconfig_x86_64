@@ -1,0 +1,26 @@
+# KinetOS default config for x86_64
+# this file is consumed by the build system
+
+ARCH=x86_64
+BOOT_PROTOCOL=multiboot2
+
+# optimization
+OPT_LEVEL=2
+DEBUG_INFO=n
+FRAME_POINTER=n
+KASAN=n
+
+# features
+SCHED_RT=y
+PREEMPT=y
+HIGH_RES_TIMERS=y
+SMP=y
+MAX_CPUS=64
+
+# memory
+PAGE_SIZE=4096
+HEAP_SIZE_MB=16
+
+# debug
+PANIC_ON_BUG=y
+STACK_CANARY=y
