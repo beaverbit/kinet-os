@@ -22,25 +22,10 @@ These examples illustrate the problem, but they do not define the scope. Any wor
 
 KinetOS is not a general-purpose operating system. It is an operating system for latency-critical workloads, where worst-case predictability matters as much as average-case speed.
 
-## Status
-
-Pre-alpha. Nothing boots yet — the tree is being laid out.
-
-- [x] Repository structure
-- [ ] Boot in QEMU (x86_64, multiboot2)
-- [ ] Kernel heap allocator
-- [ ] Interrupt handling (IDT + APIC)
-- [ ] Timer and tick
-- [ ] First scheduler
-- [ ] First syscall
-- [ ] Userspace `init`
-- [ ] Latency benchmark harness
-
-See [`docs/design/`](docs/design/) for the reasoning behind each decision.
 
 ## Documentation
 
-See [Documentation](docs/) for the full documentation index.
+See [Documentation](docs/) for the full documentation index, including the [roadmap](docs/ROADMAP.md).
 
 ## License
 
