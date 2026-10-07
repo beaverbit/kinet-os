@@ -1,482 +1,74 @@
-# Project Decisions
-
-Record of technical decisions for KinetOS. This file covers development process, tooling, licensing, code structure, documentation, and future phases.
-
 ---
 
-## Decision 001: License — GPLv2
+## Decision 015: CI/CD — planned from the start (supersedes 011)
 
 **Status:** Accepted
 
 **Context:**
-KinetOS needs to define its license. The choice is between permissive (MIT, BSD, Apache 2.0) and copyleft (GPLv2, GPLv3).
+Decision 011 deferred CI/CD to a future phase, reasoning that it would be
+unnecessary overhead before the project had code. After writing
+`docs/design/` and `docs/contracts/`, this reasoning no longer holds:
+
+- The design documents specify architectural invariants (separation
+  between `core/` and `services/`, no dynamic allocation in `core/`,
+  no floating-point in `core/`, WCET declarations per driver and HAL
+  operation).
+- `docs/contracts/wcet-analysis.md` assumes that CI runs on every commit
+  to compare declared and measured WCETs.
+- `docs/design/certification.md` assumes that CI produces traceability
+  evidence and coverage reports from day one.
+- `CONTRIBUTING.md` and `docs/ROADMAP.md` both reference CI enforcement
+  of architectural rules.
+
+Deferring CI would mean that these invariants are enforced only by code
+review — which is exactly the failure mode the documents are designed
+to avoid. Once code exists, a rule that is not mechanically enforced
+erodes under pressure.
 
 **Alternatives considered:**
-1. MIT
-2. Apache 2.0
-3. GPLv2
-4. GPLv3
+1. Keep Decision 011 (defer CI).
+2. Set up CI now, in full.
+3. Plan CI now, implement it in phases (minimal now, expand later).
 
 **Decision:**
-GPLv2.
+Plan CI from the start, implement it in phases.
+
+- **Phase 1 (now):** the CI workflow is committed to the repository, but
+  runs only the architectural invariant checks that are independent of
+  code (directory structure, forbidden includes, forbidden constructs).
+  It does not run tests or benchmarks, because there is no code to test.
+- **Phase 2 (with the first code):** CI adds compilation, unit tests, and
+  WCET measurement for the components that exist.
+- **Phase 3 (with the first certified driver):** CI adds the traceability
+  matrix and coverage reports.
+
+The phase plan is reflected in `docs/ROADMAP.md`.
+
+**Supersedes:** Decision 011 (CI/CD deferred).
 
 **Rationale:**
-- **MIT/Apache 2.0**: permissive; allow proprietary use without contribution back; incompatible with the philosophy of an open, community-driven project.
-- **GPLv2**: copyleft; ensures modifications remain open; compatible with the C ecosystem; Linux's choice.
-- **GPLv3**: more modern, but incompatible with GPLv2 and some libraries.
+- Architectural invariants erode if not mechanically enforced. Code
+  review alone is not sufficient, especially for a solo maintainer.
+- The invariant checks are cheap to write (a few `grep` and shell
+  scripts). There is no justification for deferring them.
+- Tests and benchmarks genuinely require code. Deferring those is
+  reasonable; deferring all of CI is not.
+- `docs/contracts/wcet-analysis.md` and `docs/design/certification.md`
+  both assume a CI pipeline exists. Those documents would need to be
+  rewritten if CI were deferred — which is a worse outcome than
+  committing a minimal CI now.
 
 **Consequences:**
-- Code remains open and community-driven.
-- Contributions back are mandatory.
-- Incompatibility with Apache 2.0 code (evaluated case by case).
-- Alignment with Linux.
+- A `.github/workflows/` directory is created with a minimal CI workflow.
+- The workflow checks architectural invariants from the first commit.
+- When code is added, the workflow expands to compile and test it.
+- The workflow is part of the repository, subject to the same review
+  process as any other file.
+- Failure of an architectural invariant check blocks merge, per
+  `CONTRIBUTING.md`.
 
 **References:**
-- Linux (GPLv2)
-- FreeBSD (BSD)
-- Redox OS (MIT)
-
----
-
-## Decision 002: Development model — incremental, benchmarks from the start
-
-**Status:** Accepted
-
-**Context:**
-KinetOS needs to define its development model. The choice is between developing everything and benchmarking at the end, or developing incrementally with benchmarks from the start.
-
-**Alternatives considered:**
-1. Develop everything, benchmark at the end
-2. Develop incrementally, benchmark from the start
-
-**Decision:**
-Incremental development, with benchmarks from the start.
-
-**Rationale:**
-- **Benchmark at the end**: risk of discovering latency problems too late.
-- **Benchmark from the start**: validates design decisions continuously; detects regressions early; generates data for analysis.
-- Alignment with the philosophy of latency as a requirement.
-
-**Consequences:**
-- Benchmarks are part of development, not a final step.
-- Each module has an associated benchmark.
-- Latency data guides design decisions.
-- Roadmap includes benchmarks at each phase.
-
-**References:**
-- LITMUS^RT (real-time benchmarks)
-- Linux (scheduler benchmarks)
-
----
-
-## Decision 003: Code structure — modular by subsystem
-
-**Status:** Accepted
-
-**Context:**
-KinetOS needs to define its code structure. The choice is between a monolith of files or a modular structure with clear interfaces.
-
-**Alternatives considered:**
-1. Monolith of files
-2. Modular structure with clear interfaces
-
-**Decision:**
-Modular structure with clear interfaces, organized by subsystem.
-
-**Rationale:**
-- **Monolith**: simple at first, but hard to maintain and evolve.
-- **Modular**: each subsystem has a clear interface; facilitates incremental evolution; aligned with monolithic modular architecture.
-
-**Consequences:**
-- `boot/` — bootloader and linker script.
-- `kernel/` — kernel code.
-- `kernel/src/memory/` — memory management.
-- `kernel/src/sched/` — scheduler.
-- `kernel/src/drivers/` — drivers.
-- `userspace/` — user space code.
-- `docs/` — documentation.
-- `scripts/` — build and run scripts.
-
-**References:**
-- Linux (modular)
-- SerenityOS (modular)
-
----
-
-## Decision 004: Build system — Makefile
-
-**Status:** Accepted
-
-**Context:**
-KinetOS needs to define its build system. The choice is between Makefile, CMake, Ninja, or a custom build system.
-
-**Alternatives considered:**
-1. Makefile
-2. CMake
-3. Ninja
-4. Custom build system
-
-**Decision:**
-Makefile.
-
-**Rationale:**
-- **Makefile**: simple, universal, standard in kernel projects; full control.
-- **CMake**: complex for a kernel; unnecessary overhead.
-- **Ninja**: fast, but generated by another system.
-- **Custom**: unnecessary scope.
-
-**Consequences:**
-- Makefile defines targets: `build`, `run`, `debug`, `clean`.
-- Integration with GCC, NASM, LD, and QEMU.
-- Full control over compilation flags.
-
-**References:**
-- Linux (Kbuild)
-- xv6 (Makefile)
-- SerenityOS (Makefile + CMake)
-
----
-
-## Decision 005: Emulator and debug — QEMU + GDB
-
-**Status:** Accepted
-
-**Context:**
-KinetOS needs to define its testing and debugging environment. The choice is between real hardware, QEMU, Bochs, VirtualBox, and GDB.
-
-**Alternatives considered:**
-1. Real hardware
-2. QEMU + GDB
-3. Bochs
-4. VirtualBox
-
-**Decision:**
-QEMU for emulation, GDB for debugging.
-
-**Rationale:**
-- **Real hardware**: risky, hard to debug, slow to iterate.
-- **QEMU**: mature emulator, x86_64 support, GDB debugging, fast, open source.
-- **GDB**: complete inspection of registers, memory, stack; breakpoints; step-by-step.
-- **Bochs**: good for debugging, but slow.
-- **VirtualBox**: focused on virtualization, not kernel development.
-
-**Consequences:**
-- Development and testing in QEMU.
-- Debugging with GDB connected to QEMU.
-- Tests on real hardware only at milestones.
-- Fast iteration.
-
-**References:**
-- OSDev Wiki (QEMU + GDB)
-- SerenityOS (QEMU + GDB)
-
----
-
-## Decision 006: Version control and hosting — Git + GitHub
-
-**Status:** Accepted
-
-**Context:**
-KinetOS needs to define its version control and hosting. The choice is between Git, Mercurial, SVN, and GitHub, GitLab, Codeberg, self-hosted.
-
-**Alternatives considered:**
-1. Git + GitHub
-2. Git + GitLab
-3. Git + Codeberg
-4. Mercurial / SVN
-5. Self-hosted
-
-**Decision:**
-Git for version control, GitHub for hosting.
-
-**Rationale:**
-- **Git**: industry standard; mature tools.
-- **GitHub**: largest community; visibility; GitHub Actions.
-- **GitLab**: good, but less visibility for open source.
-- **Codeberg**: ethical, but less visibility.
-- **Self-hosted**: unnecessary complexity.
-
-**Consequences:**
-- Repository at `https://github.com/beaverbit/kinet-os`.
-- Frequent and descriptive commits.
-- Branches for features.
-- Future CI/CD integration.
-
-**References:**
-- Linux (Git + GitHub)
-- SerenityOS (Git + GitHub)
-
----
-
-## Decision 007: Versioning — semver
-
-**Status:** Accepted
-
-**Context:**
-KinetOS needs to define its versioning scheme. The choice is between linear versioning, semver, or date-based.
-
-**Alternatives considered:**
-1. Linear (v1, v2, v3)
-2. Semver (MAJOR.MINOR.PATCH)
-3. Date-based (YYYY.MM.DD)
-
-**Decision:**
-Semver.
-
-**Rationale:**
-- **Linear**: does not communicate compatibility.
-- **Semver**: communicates compatibility; industry standard.
-- **Date-based**: does not communicate compatibility.
-
-**Consequences:**
-- Versions: MAJOR.MINOR.PATCH.
-- MAJOR: incompatible changes.
-- MINOR: compatible new features.
-- PATCH: compatible fixes.
-
-**References:**
-- Semver (https://semver.org)
-
----
-
-## Decision 008: Language — English as the standard
-
-**Status:** Accepted
-
-**Context:**
-KinetOS needs to define its language. The choice is between English, Portuguese, or both.
-
-**Alternatives considered:**
-1. English only
-2. Portuguese only
-3. English in code, Portuguese in internal documentation
-
-**Decision:**
-English as the standard for everything: code, comments, documentation (public and internal), commit messages, issues, and pull requests.
-
-**Rationale:**
-- **English only**: industry standard; facilitates international contributors; avoids translation overhead; keeps the project consistent.
-- **Portuguese only**: limits the project's reach; makes international contributions impossible.
-- **Mixed (English in code, Portuguese in docs)**: creates inconsistency; requires contributors to know both languages; adds maintenance burden.
-
-**Consequences:**
-- Code, comments, README, ADRs, and all documentation in English.
-- Commit messages in English.
-- Issues and pull requests in English.
-- Easier onboarding for international contributors.
-- No language switching during development.
-- Slight overhead for solo development (writing in a non-native language), but long-term gain in reach and consistency.
-
-**References:**
-- Linux (English)
-- SerenityOS (English)
-- Zephyr (English)
-
----
-
-## Decision 009: Code philosophy — simplicity and clarity
-
-**Status:** Accepted
-
-**Context:**
-KinetOS needs to define its code philosophy. The choice is between aggressive optimization or simplicity and clarity.
-
-**Alternatives considered:**
-1. Aggressive optimization
-2. Simplicity and clarity
-3. Both
-
-**Decision:**
-Simplicity and clarity, with optimization when necessary and measurable.
-
-**Rationale:**
-- **Aggressive optimization**: risk of bugs; hard to maintain.
-- **Simplicity and clarity**: easy to understand; easy to maintain; foundation for future optimization.
-- **Both**: balance.
-
-**Consequences:**
-- Clear and readable code.
-- Optimization guided by benchmarks, not intuition.
-- Comments explain the "why", not the "what".
-- Facilitates evolution and contributors.
-
-**References:**
-- Linux (simplicity + optimization)
-- SerenityOS (clarity)
-
----
-
-## Decision 010: Evolution philosophy — incremental
-
-**Status:** Accepted
-
-**Context:**
-KinetOS needs to define its evolution philosophy. The choice is between rewriting or incremental evolution.
-
-**Alternatives considered:**
-1. Rewriting
-2. Incremental evolution
-
-**Decision:**
-Incremental evolution.
-
-**Rationale:**
-- **Rewriting**: loss of knowledge; risk of regression.
-- **Incremental evolution**: maintains knowledge; adds features without breaking.
-
-**Consequences:**
-- Features added incrementally.
-- Benchmarks ensure no regression.
-- Solid foundation before expanding.
-- Facilitates contributors.
-
-**References:**
-- Linux (incremental evolution)
-- SerenityOS (incremental evolution)
-
----
-
-## Decision 011: Future phases — CI/CD and contributors
-
-**Status:** Deferred
-
-**Context:**
-KinetOS needs to define its strategy for CI/CD and contributors. The choice is between setting up now or deferring.
-
-**Alternatives considered:**
-1. Set up now
-2. Defer to future phase
-
-**Decision:**
-Defer to future phase.
-
-**Rationale:**
-- **Now**: unnecessary overhead at the start; focus on code.
-- **Future**: when the project has contributors and stability.
-
-**Consequences:**
-- Focus on code and benchmarks at the start.
-- CI/CD and contributors evaluated in the future.
-- GitHub Actions evaluated in the future.
-
-**References:**
-- Linux
-- SerenityOS
-
----
-
-## Decision 012: Embedded target — ARM Cortex-M as secondary architecture
-
-**Status:** Deferred
-
-**Context:**
-KinetOS has x86_64 as its initial target architecture (see `DECISIONS_KERNEL.md`, Decision 004). However, the embedded systems market is dominated by ARM Cortex-M microcontrollers (STM32, nRF, RP2040, LPC) and, increasingly, RISC-V MCUs (ESP32-C3, SiFive). A path to embedded targets would expand the project's applicability to critical embedded systems, which are already cited as a use case in Decision 002.
-
-**Alternatives considered:**
-1. Stay x86_64-only
-2. Add ARM Cortex-M as secondary target
-3. Add RISC-V as secondary target
-4. Add both ARM and RISC-V
-
-**Decision:**
-Defer embedded target support to a future phase. When pursued, prioritize ARM Cortex-M (specifically Cortex-M4/M7, which have optional FPU and MPU but no MMU) as the first embedded target, followed by RISC-V.
-
-**Rationale:**
-- **x86_64-only**: limits applicability to servers and desktops; excludes the embedded market entirely.
-- **ARM Cortex-M**: dominant in embedded; abundant documentation; QEMU supports Cortex-M (e.g., `qemu-system-arm -M mps2-an385`); MPU (not MMU) means a different memory model, but that aligns with the project's philosophy of simplicity and predictability.
-- **RISC-V**: promising and increasingly relevant, but the toolchain and emulation ecosystem are still less mature than ARM's for bare-metal kernel development.
-- **Both at once**: infinite scope; violates Decision 004 of `DECISIONS_KERNEL.md` (focus on one architecture to accelerate development).
-- **Deferring**: the x86_64 port must reach a stable state (boot, memory, scheduler, syscalls, userspace) before a second architecture is attempted. Porting prematurely would multiply maintenance cost without a working reference.
-
-**Consequences:**
-- The kernel must not assume x86_64-specific features in architecture-independent code (e.g., no reliance on 4-level paging in the scheduler).
-- A HAL (Hardware Abstraction Layer) will need to be introduced before the first port.
-- The memory model for Cortex-M will differ: no paging, optional MPU, flat physical address space.
-- Drivers will need a separate implementation for each architecture.
-- Benchmarks must be comparable across architectures (same workload, same metrics: p99/p999, jitter).
-
-**References:**
-- Zephyr (multi-architecture RTOS)
-- FreeRTOS (Cortex-M focused)
-- QEMU (Cortex-M emulation)
-- ARMv7-M Architecture Reference Manual
-
----
-
-## Decision 013: Embedded mode — no_std, single binary, no userspace
-
-**Status:** Deferred
-
-**Context:**
-KinetOS on x86_64 assumes a userspace with syscalls, separate address spaces, and a full memory management subsystem. Microcontrollers do not have the resources for a traditional userspace: no MMU (only MPU on some Cortex-M), limited RAM (often 64–512 KB), limited flash (often 256 KB–2 MB). An embedded mode is needed to make KinetOS viable on MCUs.
-
-**Alternatives considered:**
-1. Full userspace on MCU (unfeasible)
-2. Single binary with kernel + application linked together
-3. no_std Rust-style approach in C (freestanding)
-4. Separate lightweight RTOS mode
-
-**Decision:**
-Defer embedded mode to a future phase. When pursued, implement a freestanding C mode where the kernel and application are compiled and linked into a single binary, with no userspace, no syscalls, and no dynamic memory allocation after boot.
-
-**Rationale:**
-- **Full userspace on MCU**: requires MMU and memory isolation, which Cortex-M does not have. Even with MPU, the overhead and complexity contradict the project's simplicity philosophy.
-- **Single binary**: eliminates IPC and syscall overhead entirely; the application runs in privileged mode (or a single unprivileged task); latency is minimized.
-- **no_std-style in C**: C is already freestanding-compatible; the project avoids libc dependencies where possible; static allocation is preferred.
-- **Separate RTOS mode**: would duplicate the scheduler and violate the "one kernel, multiple targets" philosophy.
-
-**Consequences:**
-- A new build target (e.g., `make embedded`) produces a single binary.
-- The scheduler runs directly on the application's tasks; no process isolation.
-- Memory is statically allocated at compile time; no heap after boot.
-- Drivers are linked into the binary, not loaded dynamically.
-- Debugging is done via SWD/JTAG, not GDB over QEMU (though QEMU Cortex-M is still useful for early bring-up).
-- The embedded mode shares the scheduler and core kernel logic with x86_64, but not the memory subsystem or userspace.
-
-**References:**
-- FreeRTOS (single binary model)
-- Zephyr (supports both monolithic and userspace modes)
-- Embedded Rust (`no_std` philosophy, adapted to C)
-
----
-
-## Decision 014: Industrial and IoT protocols — modular, opt-in
-
-**Status:** Deferred
-
-**Context:**
-KinetOS cites "critical embedded systems" and "edge computing" as use cases (Decision 002). Industrial and IoT deployments rely on specific protocols: MQTT (messaging), Modbus (industrial control), CAN (automotive and industrial), CoAP (constrained IoT), and OPC-UA (industrial interoperability). Supporting these protocols would make KinetOS directly applicable to industrial and IoT scenarios.
-
-**Alternatives considered:**
-1. No protocol support (kernel only)
-2. Core protocols in the kernel
-3. Modular protocols, opt-in at build time
-4. Userspace protocol stack (on x86_64 only)
-
-**Decision:**
-Defer protocol support to a future phase. When pursued, implement protocols as modular, opt-in components, compiled in only when enabled in the build configuration, and usable in both x86_64 and embedded modes.
-
-**Rationale:**
-- **No protocol support**: keeps the kernel minimal, but excludes the industrial/IoT use case entirely.
-- **Core protocols in the kernel**: violates the project's simplicity philosophy; bloats the kernel; introduces dependencies (e.g., TCP/IP stack) that may not be needed.
-- **Modular, opt-in**: aligns with Decision 003 of `DECISIONS_KERNEL.md` (monolithic modular) and Decision 003 of this file (modular by subsystem); keeps the kernel minimal by default; allows targeted builds for specific deployments.
-- **Userspace-only**: would exclude embedded mode, where userspace does not exist.
-
-**Consequences:**
-- Protocols are organized under a new subsystem (e.g., `kernel/src/proto/`).
-- Each protocol has a clear interface and can be enabled/disabled via build flags.
-- A minimal network stack (or integration with an existing one, e.g., lwIP) will be required for IP-based protocols (MQTT, CoAP).
-- CAN and Modbus may be implemented directly on top of hardware drivers.
-- Benchmarks must measure protocol overhead and its impact on tail latency.
-- The default build remains protocol-free to preserve the minimal kernel.
-
-**References:**
-- lwIP (lightweight IP stack for embedded)
-- Eclipse Paho (MQTT client implementations)
-- FreeMODBUS (Modbus implementation)
-- SocketCAN (Linux CAN subsystem, architectural reference)
-
----
-
-- **Date:** 2026-10-01
-- **End of document.**
+- `CONTRIBUTING.md` — architectural rules and rejection policy.
+- `docs/contracts/wcet-analysis.md` — assumes CI exists.
+- `docs/design/certification.md` — assumes CI produces evidence.
+- `docs/ROADMAP.md` — phased plan for CI.
