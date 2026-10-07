@@ -70,3 +70,9 @@ KinetOS uses `.gitkeep` files to version empty directories that are part of the 
 ## License
 
 By contributing, you agree that your contributions will be licensed under GPLv2 (see `LICENSE`).
+## Language
+
+All code, comments, documentation, commit messages, and issues
+must be written in English. This is an international project
+released under GPLv2 and meant to be understood by contributors
+worldwide.
