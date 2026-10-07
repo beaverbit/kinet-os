@@ -12,7 +12,7 @@ KinetOS is pre-alpha. Only the `main` branch receives fixes.
 
 **Do not open a public issue for security vulnerabilities.**
 
-Email the maintainer (see GitHub profile [@beaverbit](https://github.com/beaverbit)) with:
+Email the maintainer kinet.foundation@gmail.com with:
 
 - Description of the issue
 - Reproduction steps (QEMU command, config, and inputs)
