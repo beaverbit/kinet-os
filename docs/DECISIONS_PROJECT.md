@@ -85,20 +85,21 @@ Modular structure with clear interfaces, organized by subsystem.
 
 **Rationale:**
 - **Monolith**: simple at first, but hard to maintain and evolve.
-- **Modular**: each subsystem has a clear interface; facilitates incremental evolution.
+- **Modular**: each subsystem has a clear interface; facilitates incremental evolution; aligned with monolithic modular architecture.
 
 **Consequences:**
-- Top-level directories: `core/`, `platform/`, `services/`, `validation/`, `lib/`, `configs/`, `docs/`, `scripts/`, `tools/`, `include/`.
-- `core/` holds the certifiable kernel: scheduler, time, isolation, IPC.
-- `platform/` holds HAL and drivers, under declared temporal contracts.
-- `services/` holds filesystem, network, userspace — outside the kernel.
-- `lib/no-alloc/` holds code safe for the critical path; `lib/general/` holds code that must not run in the kernel.
-- `validation/` holds WCET, adversarial, chaos, conformance, benchmarks, tests.
+- `boot/` — bootloader and linker script.
+- `kernel/` — kernel code.
+- `kernel/src/memory/` — memory management.
+- `kernel/src/sched/` — scheduler.
+- `kernel/src/drivers/` — drivers.
+- `userspace/` — user space code.
+- `docs/` — documentation.
+- `scripts/` — build and run scripts.
 
 **References:**
 - Linux (modular)
 - SerenityOS (modular)
-- `docs/design/execution-model.md` and following design documents
 
 ---
 
@@ -199,7 +200,7 @@ Git for version control, GitHub for hosting.
 - Repository at `https://github.com/beaverbit/kinet-os`.
 - Frequent and descriptive commits.
 - Branches for features.
-- CI/CD via GitHub Actions.
+- Future CI/CD integration.
 
 **References:**
 - Linux (Git + GitHub)
@@ -337,7 +338,7 @@ Incremental evolution.
 
 ## Decision 011: Future phases — CI/CD and contributors
 
-**Status:** Superseded by Decision 015.
+**Status:** Deferred
 
 **Context:**
 KinetOS needs to define its strategy for CI/CD and contributors. The choice is between setting up now or deferring.
@@ -389,7 +390,7 @@ Defer embedded target support to a future phase. When pursued, prioritize ARM Co
 
 **Consequences:**
 - The kernel must not assume x86_64-specific features in architecture-independent code (e.g., no reliance on 4-level paging in the scheduler).
-- A HAL will need to be introduced before the first port.
+- A HAL (Hardware Abstraction Layer) will need to be introduced before the first port.
 - The memory model for Cortex-M will differ: no paging, optional MPU, flat physical address space.
 - Drivers will need a separate implementation for each architecture.
 - Benchmarks must be comparable across architectures (same workload, same metrics: p99/p999, jitter).
@@ -458,11 +459,11 @@ Defer protocol support to a future phase. When pursued, implement protocols as m
 **Rationale:**
 - **No protocol support**: keeps the kernel minimal, but excludes the industrial/IoT use case entirely.
 - **Core protocols in the kernel**: violates the project's simplicity philosophy; bloats the kernel; introduces dependencies (e.g., TCP/IP stack) that may not be needed.
-- **Modular, opt-in**: aligns with Decision 003 of this file (modular by subsystem); keeps the kernel minimal by default; allows targeted builds for specific deployments.
+- **Modular, opt-in**: aligns with Decision 003 of `DECISIONS_KERNEL.md` (monolithic modular) and Decision 003 of this file (modular by subsystem); keeps the kernel minimal by default; allows targeted builds for specific deployments.
 - **Userspace-only**: would exclude embedded mode, where userspace does not exist.
 
 **Consequences:**
-- Protocols are organized under a new subsystem, likely `services/proto/`, outside the certifiable kernel.
+- Protocols are organized under a new subsystem (e.g., `kernel/src/proto/`).
 - Each protocol has a clear interface and can be enabled/disabled via build flags.
 - A minimal network stack (or integration with an existing one, e.g., lwIP) will be required for IP-based protocols (MQTT, CoAP).
 - CAN and Modbus may be implemented directly on top of hardware drivers.
@@ -477,51 +478,5 @@ Defer protocol support to a future phase. When pursued, implement protocols as m
 
 ---
 
-## Decision 015: CI/CD — planned from the start (supersedes 011)
-
-**Status:** Accepted
-
-**Context:**
-Decision 011 deferred CI/CD to a future phase, reasoning that it would be unnecessary overhead before the project had code. After writing `docs/design/` and `docs/contracts/`, this reasoning no longer holds:
-
-- The design documents specify architectural invariants (separation between `core/` and `services/`, no dynamic allocation in `core/`, no floating-point in `core/`, WCET declarations per driver and HAL operation).
-- `docs/contracts/wcet-analysis.md` assumes that CI runs on every commit to compare declared and measured WCETs.
-- `docs/design/certification.md` assumes that CI produces traceability evidence and coverage reports from day one.
-- `CONTRIBUTING.md` and `docs/ROADMAP.md` both reference CI enforcement of architectural rules.
-
-Deferring CI would mean that these invariants are enforced only by code review — which is exactly the failure mode the documents are designed to avoid. Once code exists, a rule that is not mechanically enforced erodes under pressure.
-
-**Alternatives considered:**
-1. Keep Decision 011 (defer CI).
-2. Set up CI now, in full.
-3. Plan CI now, implement it in phases (minimal now, expand later).
-
-**Decision:**
-Plan CI from the start, implement it in phases.
-
-- **Phase 1 (now):** the CI workflow is committed to the repository, but runs only the architectural invariant checks that are independent of code (directory structure, forbidden includes, forbidden constructs). It does not run tests or benchmarks, because there is no code to test.
-- **Phase 2 (with the first code):** CI adds compilation, unit tests, and WCET measurement for the components that exist.
-- **Phase 3 (with the first certified driver):** CI adds the traceability matrix and coverage reports.
-
-The phase plan is reflected in `docs/ROADMAP.md`.
-
-**Supersedes:** Decision 011 (CI/CD deferred).
-
-**Rationale:**
-- Architectural invariants erode if not mechanically enforced. Code review alone is not sufficient, especially for a solo maintainer.
-- The invariant checks are cheap to write (a few `grep` and shell scripts). There is no justification for deferring them.
-- Tests and benchmarks genuinely require code. Deferring those is reasonable; deferring all of CI is not.
-- `docs/contracts/wcet-analysis.md` and `docs/design/certification.md` both assume a CI pipeline exists. Those documents would need to be rewritten if CI were deferred — which is a worse outcome than committing a minimal CI now.
-
-**Consequences:**
-- A `.github/workflows/` directory is created with a minimal CI workflow.
-- The workflow checks architectural invariants from the first commit.
-- When code is added, the workflow expands to compile and test it.
-- The workflow is part of the repository, subject to the same review process as any other file.
-- Failure of an architectural invariant check blocks merge, per `CONTRIBUTING.md`.
-
-**References:**
-- `CONTRIBUTING.md` — architectural rules and rejection policy.
-- `docs/contracts/wcet-analysis.md` — assumes CI exists.
-- `docs/design/certification.md` — assumes CI produces evidence.
-- `docs/ROADMAP.md` — phased plan for CI.
+- **Date:** 2026-10-01
+- **End of document.**

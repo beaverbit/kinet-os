@@ -2,42 +2,32 @@
 
 ## Design
 
-The architecture of the system, in reading order:
+- [`design/`](design/) — architecture decisions and rationale
+  - [latency-budget.md](design/latency-budget.md) — how much latency each subsystem is allowed
+  - [scheduler.md](design/scheduler.md) — scheduling model and policies
+  - [memory.md](design/memory.md) — physical and virtual memory layout
 
-- [`design/execution-model.md`](design/execution-model.md)
-- [`design/isolation-model.md`](design/isolation-model.md)
-- [`design/interrupt-model.md`](design/interrupt-model.md)
-- [`design/memory-model.md`](design/memory-model.md)
-- [`design/ipc-model.md`](design/ipc-model.md)
-- [`design/certification.md`](design/certification.md)
-- [`design/README.md`](design/README.md) — index
+## Internals
 
-## Contracts
+- [`internals/`](internals/) — how the kernel works
+  - [boot.md](internals/boot.md) — boot process
+  - [interrupts.md](internals/interrupts.md) — interrupt handling
+  - [syscalls.md](internals/syscalls.md) — syscall interface
 
-The contracts that bind code to guarantees:
+## API
 
-- [`contracts/driver-contract.md`](contracts/driver-contract.md)
-- [`contracts/hal-contract.md`](contracts/hal-contract.md)
-- [`contracts/wcet-analysis.md`](contracts/wcet-analysis.md)
+- [`api/`](api/) — syscall and driver interfaces
+  - [syscalls.md](api/syscalls.md) — syscall reference
+  - [drivers.md](api/drivers.md) — driver model
 
-## Decisions
+## Latency
 
-Architecture Decision Records:
+- [`latency/`](latency/) — measurement methodology
+  - [methodology.md](latency/methodology.md) — how we measure
+  - [benchmarks.md](latency/benchmarks.md) — benchmarks
 
-- [`DECISIONS_KERNEL.md`](DECISIONS_KERNEL.md)
-- [`DECISIONS_PROJECT.md`](DECISIONS_PROJECT.md)
-- [`COMMITS.md`](COMMITS.md) — commit convention
-- [`ROADMAP.md`](ROADMAP.md)
+## Writing docs
 
-## Planned (not yet written)
-
-The following are planned but not yet created. They should be written
-as the corresponding code is written, not before.
-
-- `internals/boot.md` — boot process
-- `internals/interrupts.md` — interrupt handling
-- `internals/syscalls.md` — syscall interface
-- `api/syscalls.md` — syscall reference
-- `api/drivers.md` — driver model
-- `latency/methodology.md` — how we measure
-- `latency/benchmarks.md` — benchmarks
+- Use Markdown.
+- Every design decision that touches latency must include the reasoning and, if possible, numbers.
+- Keep diagrams in Mermaid when possible (renders on GitHub).

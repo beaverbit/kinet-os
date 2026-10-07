@@ -1,30 +1,14 @@
-# Design Documents
+# Design
 
-This directory contains the architecture of KinetOS. Each document
-decides one aspect of the system; together they define what the kernel
-promises and what it does not.
+Reasoning behind KinetOS architecture and project decisions.
 
-Read in this order:
+## ADRs
 
-1. [execution-model.md](execution-model.md) — scheduling model, time,
-   preemption, admission, deadline behavior.
-2. [isolation-model.md](isolation-model.md) — temporal and spatial
-   partitioning, fault containment.
-3. [interrupt-model.md](interrupt-model.md) — threaded IRQs, scheduler
-   outside interrupt context.
-4. [memory-model.md](memory-model.md) — no demand paging, fixed pools,
-   no shared memory.
-5. [ipc-model.md](ipc-model.md) — synchronous IPC, priority ceiling,
-   time bounds.
-6. [certification.md](certification.md) — targets, boundary, traceability.
+- [Kernel decisions](../DECISIONS_KERNEL.md) — stack, scope, architecture, memory, scheduler, drivers
+- [Project decisions](../DECISIONS_PROJECT.md) — license, build system, tooling, language, evolution
 
-The contracts that bind code to guarantees live in
-[`../contracts/`](../contracts/):
+## Deep dives (planned)
 
-- [driver-contract.md](../contracts/driver-contract.md)
-- [hal-contract.md](../contracts/hal-contract.md)
-- [wcet-analysis.md](../contracts/wcet-analysis.md)
-
-Design decisions that affect the project as a whole are recorded in
-[`../DECISIONS_PROJECT.md`](../DECISIONS_PROJECT.md) and
-[`../DECISIONS_KERNEL.md`](../DECISIONS_KERNEL.md).
+- `latency-budget.md` — how much latency each subsystem is allowed
+- `scheduler.md` — scheduling model and policies
+- `memory.md` — physical and virtual memory layout
