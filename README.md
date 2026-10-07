@@ -8,24 +8,73 @@
 
 # KinetOS
 
-A portable, low-latency operating system focused on predictable performance for interactive and critical workloads.
+A portable operating system for latency-critical workloads. KinetOS targets
+**tail latency** (p99, p999) and **worst-case predictability** as primary
+requirements, not as consequences of average-case design.
 
-## Focus
+## What this means technically
 
-KinetOS targets **tail latency** (p99, p999) and **predictability**, not average throughput. The goal is an operating system where latency is a requirement, not a consequence.
+KinetOS is built around three commitments:
 
-The focus is on the extreme percentiles of the latency distribution — the cases that the average hides and that define real experience. A system can have high throughput and still fail when p99 spikes. KinetOS treats these cases as the primary problem, not as statistical noise.
+1. **Tail latency is the metric.** Average throughput is secondary. A system
+   with high throughput and unpredictable p999 fails the design goal.
+2. **Worst-case is a requirement.** Bounds must be declared and provable, not
+   observed post-hoc from benchmarks.
+3. **Isolation is structural.** A timing fault in one component must not
+   propagate to others.
 
-Designed for workloads where every microsecond matters. In **remote surgery**, it means the surgeon's command reaches the robot within a predictable bound, with no delay that compromises the procedure. In **aircraft and drones**, it means the control system responds deterministically, with no jitter affecting flight stability. In **critical infrastructure systems**, it means timing failures do not propagate to the rest of the mesh. In **gaming**, it means consistent frame time and minimal input lag, with no stutter. In **APIs**, it means the slowest request still responds within a bound. In **real-time networking**, it means packets processed without jitter, with deterministic timing. In **embedded systems**, it means precise control over hardware with limited resources.
+These commitments constrain the architecture: the certifiable kernel is
+minimal, drivers declare a WCET contract, filesystem and network stacks run
+in isolated partitions, and no dynamic allocation is permitted on the
+critical path.
 
-These examples illustrate the problem, but they do not define the scope. Any workload where worst-case predictability is a requirement — today or in the future — is a valid target. As systems become more interactive, distributed, and time-sensitive, the demand for predictable latency grows, and KinetOS is built to follow that movement.
+## Non-goals
 
-KinetOS is not a general-purpose operating system. It is an operating system for latency-critical workloads, where worst-case predictability matters as much as average-case speed.
+KinetOS is **not** a general-purpose operating system. It deliberately does
+not promise:
 
+- Throughput as a primary metric
+- Fairness between workloads
+- Compatibility with POSIX or Linux ABIs
+- Support for demand paging on the critical path
+- Portability pursued for its own sake
+
+Any workload where worst-case predictability is a requirement is in scope.
+Workloads where it is not are better served by general-purpose systems.
+
+## Repository structure
+
+- `core/` — the certifiable kernel. Scheduler, time, isolation, IPC.
+- `platform/` — HAL and drivers, both under declared temporal contracts.
+- `services/` — filesystem, network, userspace. Run in isolated partitions,
+  outside the kernel.
+- `lib/no-alloc/` — code safe for the critical path. No dynamic allocation.
+- `lib/general/` — code that must **not** run in the kernel.
+- `validation/` — proof of temporal guarantees: WCET analysis, adversarial
+  load, chaos, conformance, benchmarks.
+- `configs/` — build profiles: `hard-rt`, `soft-rt`, `minimal`.
+- `docs/design/` — the architecture. Start with `execution-model.md`.
+- `docs/contracts/` — the contracts binding code to guarantees.
 
 ## Documentation
 
-See [Documentation](docs/) for the full documentation index, including the [roadmap](docs/ROADMAP.md).
+See [`docs/`](docs/) for the full index and [`docs/ROADMAP.md`](docs/ROADMAP.md)
+for the roadmap.
+
+The architecture is specified in `docs/design/`:
+
+- [`execution-model.md`](docs/design/execution-model.md) — time model, preemption, admission
+- [`isolation-model.md`](docs/design/isolation-model.md) — temporal and spatial partitioning
+- [`ipc-model.md`](docs/design/ipc-model.md) — semantics, priority inversion, time bounds
+- [`memory-model.md`](docs/design/memory-model.md) — allocation, paging, protection
+- [`interrupt-model.md`](docs/design/interrupt-model.md) — delivery latency, threading
+- [`certification.md`](docs/design/certification.md) — targets and traceability
+
+The contracts in `docs/contracts/` define what code must declare to be accepted:
+
+- [`driver-contract.md`](docs/contracts/driver-contract.md)
+- [`hal-contract.md`](docs/contracts/hal-contract.md)
+- [`wcet-analysis.md`](docs/contracts/wcet-analysis.md)
 
 ## License
 
