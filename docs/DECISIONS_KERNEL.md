@@ -306,5 +306,48 @@ Latency as a requirement. Every design decision is evaluated by its impact on ta
 
 ---
 
-- **Date:** 2026-10-01
+## Decision 010: Architecture — separation kernel (supersedes 003, 007, 008)
+
+**Status:** Accepted
+
+**Context:**
+Decision 003 chose monolithic modular; Decision 007 chose a "tail-latency
+oriented" scheduler; Decision 008 placed drivers in kernel space. After
+writing `docs/design/execution-model.md`, `isolation-model.md`, and
+`certification.md`, these decisions were found insufficient for the
+certification target (DO-178C) and the tail-latency goal.
+
+**Decision:**
+KinetOS uses a **separation kernel** architecture:
+
+- The certifiable kernel (`core/` + `platform/hal/` + certified drivers)
+  is minimal and contains no drivers that are not part of the
+  certification artifact.
+- All other drivers run in isolated partitions
+  (`platform/drivers/partitioned/`), under the driver contract.
+- The scheduler is hierarchical: temporal partitions at the top level
+  (ARINC 653-style), rate-monotonic inside each partition.
+- Demand paging is not supported; all memory on the critical path is
+  pre-faulted and pinned.
+
+**Supersedes:** Decision 003 (monolithic modular), Decision 007
+(tail-latency oriented scheduler), Decision 008 (drivers in kernel space).
+
+**Rationale:**
+- Certification requires a small, provable kernel. Monolithic modular
+  does not provide this.
+- Bounded tail latency requires bounded scheduling, which the temporal
+  partition model provides and "tail-latency oriented" does not.
+- Drivers in partitions contain faults; drivers in the kernel propagate
+  them.
+
+**References:**
+- `docs/design/execution-model.md`
+- `docs/design/isolation-model.md`
+- `docs/contracts/certification.md`
+- seL4, QNX (architectural references)
+
+---
+
+- **Date:** 2026-10-07
 - **End of document.**
