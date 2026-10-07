@@ -78,7 +78,7 @@ Niche OS focused on tail latency, positioned in its own category: low latency + 
 
 ## Decision 003: Architecture — monolithic modular
 
-**Status:** Accepted
+**Status:** Superseded by Decision 010.
 
 **Context:**
 KinetOS needs to define its kernel architecture. The choice is between monolithic, microkernel, or hybrid.
@@ -109,6 +109,10 @@ Monolithic modular.
 - FreeBSD (monolithic modular)
 - SerenityOS (monolithic modular)
 
+**Note:** This decision was superseded by Decision 010, which adopts a
+separation kernel architecture. See Decision 010 for the current
+architecture.
+
 ---
 
 ## Decision 004: Target architecture — x86_64
@@ -135,7 +139,7 @@ x86_64 as initial target architecture. Other architectures evaluated in a future
 
 **Consequences:**
 - Boot, GDT, IDT, paging, and context switch specific to x86_64.
-- Portability requires future refactoring.
+- Portability requires a HAL (see Decision 010).
 - Focus on one architecture accelerates development.
 
 **References:**
@@ -175,43 +179,48 @@ Limine.
 
 ---
 
-## Decision 006: Memory model — 4-level paging
+## Decision 006: Memory model — 4-level paging, no demand paging
 
 **Status:** Accepted
 
 **Context:**
-KinetOS needs to define its virtual memory model. The choice is between segmentation, 2-level paging, 4-level paging, or 5-level paging.
+KinetOS needs to define its virtual memory model. The choice is between segmentation, 2-level paging, 4-level paging, or 5-level paging. Separately, the kernel must decide whether to support demand paging.
 
 **Alternatives considered:**
 1. Segmentation
 2. 2-level paging
 3. 4-level paging (x86_64 standard)
 4. 5-level paging
+5. Demand paging vs. pre-faulted memory
 
 **Decision:**
-4-level paging (x86_64 standard).
+4-level paging (x86_64 standard). Demand paging is **not** supported on the critical path: all memory used by the kernel and by certified drivers is pre-faulted and pinned.
 
 **Rationale:**
 - **Segmentation**: obsolete on x86_64.
 - **2-level paging**: insufficient for 64-bit addressing.
 - **4-level paging**: x86_64 standard; supports 48-bit virtual addresses (256 TB).
 - **5-level paging**: rare hardware; unnecessary complexity.
+- **Demand paging**: introduces page faults, which introduce unbounded latency. A page fault during a real-time operation is a deadline miss.
 
 **Consequences:**
 - Uses PML4, PDPT, PD, and PT.
 - Supports 256 TB of virtual address space.
 - Huge pages (2 MB, 1 GB) to reduce TLB misses.
-- Alignment with x86_64 standard.
+- All kernel memory is pre-faulted at boot.
+- No page faults on the critical path.
+- See `docs/design/memory-model.md` for the full memory model.
 
 **References:**
 - Intel SDM Volume 3A (paging)
-- Linux (x86_64 uses 4 levels)
+- Linux (x86_64 uses 4 levels, but supports demand paging — which KinetOS does not)
+- `docs/design/memory-model.md`
 
 ---
 
 ## Decision 007: Scheduler — tail-latency oriented
 
-**Status:** Accepted
+**Status:** Superseded by Decision 010.
 
 **Context:**
 KinetOS needs to define its scheduling policy. The choice is between fairness (CFS-like), real-time (fixed priority), or tail-latency oriented.
@@ -241,11 +250,16 @@ Tail-latency oriented scheduler (p99, p999), not fairness or average throughput.
 - LITMUS^RT (deterministic Linux)
 - QNX (real-time)
 
+**Note:** This decision was superseded by Decision 010, which adopts
+hierarchical scheduling (temporal partitions + rate-monotonic inside
+each partition). See `docs/design/execution-model.md` for the current
+model.
+
 ---
 
 ## Decision 008: Drivers — in kernel space
 
-**Status:** Accepted
+**Status:** Superseded by Decision 010.
 
 **Context:**
 KinetOS needs to define where drivers run. The choice is between kernel space (monolithic) or user space (microkernel).
@@ -272,6 +286,11 @@ Drivers in kernel space.
 **References:**
 - Linux (drivers in kernel)
 - QNX (drivers in userspace, different trade-off)
+
+**Note:** This decision was superseded by Decision 010, which splits
+drivers between `platform/drivers/certified/` (kernel space) and
+`platform/drivers/partitioned/` (isolated partitions). See
+`docs/contracts/driver-contract.md` for the current model.
 
 ---
 
@@ -313,9 +332,9 @@ Latency as a requirement. Every design decision is evaluated by its impact on ta
 **Context:**
 Decision 003 chose monolithic modular; Decision 007 chose a "tail-latency
 oriented" scheduler; Decision 008 placed drivers in kernel space. After
-writing `docs/design/execution-model.md`, `isolation-model.md`, and
-`certification.md`, these decisions were found insufficient for the
-certification target (DO-178C) and the tail-latency goal.
+writing `docs/design/execution-model.md`, `docs/design/isolation-model.md`,
+and `docs/design/certification.md`, these decisions were found insufficient
+for the certification target (DO-178C) and the tail-latency goal.
 
 **Decision:**
 KinetOS uses a **separation kernel** architecture:
@@ -344,10 +363,7 @@ KinetOS uses a **separation kernel** architecture:
 **References:**
 - `docs/design/execution-model.md`
 - `docs/design/isolation-model.md`
-- `docs/contracts/certification.md`
+- `docs/design/certification.md`
+- `docs/contracts/driver-contract.md`
+- `docs/contracts/hal-contract.md`
 - seL4, QNX (architectural references)
-
----
-
-- **Date:** 2026-10-07
-- **End of document.**
