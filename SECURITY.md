@@ -1,13 +1,5 @@
 # Security Policy
 
-## Supported Versions
-
-KinetOS is pre-alpha. Only the `main` branch receives fixes.
-
-| Version | Supported |
-| ------- | --------- |
-| main    | :white_check_mark: |
-
 ## Reporting a Vulnerability
 
 **Do not open a public issue for security vulnerabilities.**
