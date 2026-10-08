@@ -65,4 +65,4 @@ You must include before/after latency measurements in the PR description.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under GPLv2 (see `LICENSE`).
+By contributing, you agree that your contributions will be licensed under GPLv2.
