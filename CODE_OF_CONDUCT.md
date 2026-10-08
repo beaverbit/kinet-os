@@ -24,7 +24,7 @@ This applies to all project spaces: issues, pull requests, discussions, and any 
 
 ## Enforcement
 
-Violations can be reported to the maintainer ([@beaverbit](https://github.com/beaverbit)). Reports will be reviewed and may result in warnings, temporary bans, or permanent bans depending on severity.
+Violations can be reported to the maintainer (kinet.foundation@gmail.com). Reports will be reviewed and may result in warnings, temporary bans, or permanent bans depending on severity.
 
 ## Attribution
 
