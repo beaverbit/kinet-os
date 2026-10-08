@@ -445,7 +445,7 @@ Defer embedded mode to a future phase. When pursued, implement a freestanding C 
 **Status:** Deferred
 
 **Context:**
-KinetOS cites "critical embedded systems" and "edge computing" as use cases (Decision 002 / DECISIONS_KERNEL.md). Industrial and IoT deployments rely on specific protocols: MQTT (messaging), Modbus (industrial control), CAN (automotive and industrial), CoAP (constrained IoT), and OPC-UA (industrial interoperability). Supporting these protocols would make KinetOS directly applicable to industrial and IoT scenarios.
+KinetOS cites "critical embedded systems" and "edge computing" as use cases (Decision 002 - DECISIONS_KERNEL.md). Industrial and IoT deployments rely on specific protocols: MQTT (messaging), Modbus (industrial control), CAN (automotive and industrial), CoAP (constrained IoT), and OPC-UA (industrial interoperability). Supporting these protocols would make KinetOS directly applicable to industrial and IoT scenarios.
 
 **Alternatives considered:**
 1. No protocol support (kernel only)
