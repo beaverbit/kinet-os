@@ -201,12 +201,12 @@ GPLv2 (see LICENSE).
 
 ## References
 
-· README.md
-· docs/DECISIONS_KERNEL.md
-· docs/DECISIONS_PROJECT.md
-· docs/RESEARCH.md
-· docs/ROADMAP.md
-· docs/COMMITS.md
-· LICENSE
-· CODE_OF_CONDUCT.md
-· SECURITY.md
+-  README.md
+-  docs/DECISIONS_KERNEL.md
+-  docs/DECISIONS_PROJECT.md
+-  docs/RESEARCH.md
+-  docs/ROADMAP.md
+-  docs/COMMITS.md
+-  LICENSE
+-  CODE_OF_CONDUCT.md
+-  SECURITY.md
