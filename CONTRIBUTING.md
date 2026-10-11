@@ -171,18 +171,18 @@ Diagrams use Mermaid when possible.
 
 The following changes will be rejected, regardless of code quality:
 
-· Changes that improve average throughput but worsen worst-case latency.
-· Changes that add fairness as a goal to the scheduler.
-· Changes that introduce dynamic allocation on the critical path (Decision 009
+- Changes that improve average throughput but worsen worst-case latency.
+- Changes that add fairness as a goal to the scheduler.
+- Changes that introduce dynamic allocation on the critical path (Decision 009
   in docs/DECISIONS_KERNEL.md).
-· Changes that add POSIX or Linux ABI compatibility (non-goal in README.md).
-· Changes that make the kernel depend on libc, a runtime, or a garbage
+- Changes that add POSIX or Linux ABI compatibility (non-goal in README.md).
+- Changes that make the kernel depend on libc, a runtime, or a garbage
   collector (Decision 001 in docs/DECISIONS_KERNEL.md).
-· Changes that move device drivers to userspace (Decision 008 in
+- Changes that move device drivers to userspace (Decision 008 in
   docs/DECISIONS_KERNEL.md).
-· Changes that promise provable bounds on x86_64 commodity hardware (Decision
+- Changes that promise provable bounds on x86_64 commodity hardware (Decision
   012 in docs/DECISIONS_KERNEL.md).
-· Changes that touch the critical path without before/after latency
+- Changes that touch the critical path without before/after latency
   measurements (see "Latency policy" above).
 · Changes that renumber or delete an existing Decision without a new Decision
   superseding it.
@@ -201,12 +201,12 @@ GPLv2 (see LICENSE).
 
 ## References
 
--  README.md
--  docs/DECISIONS_KERNEL.md
--  docs/DECISIONS_PROJECT.md
--  docs/RESEARCH.md
--  docs/ROADMAP.md
--  docs/COMMITS.md
--  LICENSE
--  CODE_OF_CONDUCT.md
--  SECURITY.md
+- README.md
+- docs/DECISIONS_KERNEL.md
+- docs/DECISIONS_PROJECT.md
+- docs/RESEARCH.md
+- docs/ROADMAP.md
+- docs/COMMITS.md
+- LICENSE
+- CODE_OF_CONDUCT.md
+- SECURITY.md
