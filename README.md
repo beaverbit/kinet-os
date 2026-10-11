@@ -198,7 +198,7 @@ See docs/CONTRIBUTING.md and docs/COMMITS.md for details.
 
 Security
 
-See docs/SECURITY.md for the vulnerability reporting policy.
+See [`docs/SECURITY.md`](docs/SECURITY.md) for the vulnerability reporting policy.
 
 ---
 
