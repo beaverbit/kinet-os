@@ -192,13 +192,13 @@ change must include before/after latency measurements in the PR description.
 Any change that improves average throughput but worsens worst-case latency
 will be rejected.
 
-See docs/CONTRIBUTING.md and docs/COMMITS.md for details.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/COMMITS.md`](docs/COMMITS.md) for details.
 
 ---
 
 Security
 
-See [`docs/SECURITY.md`](docs/SECURITY.md) for the vulnerability reporting policy.
+See [`SECURITY.md`](SECURITY.md) for the vulnerability reporting policy.
 
 ---
 
