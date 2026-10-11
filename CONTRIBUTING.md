@@ -56,10 +56,10 @@ gdb -ex "target remote :1234"
 
 ## Coding style
 
-· Follow the Linux kernel coding style, adapted by .clang-format.
-· 4 spaces, no tabs.
-· 100 columns max.
-· Run scripts/format.sh before committing.
+- Follow the Linux kernel coding style, adapted by .clang-format.
+- 4 spaces, no tabs.
+- 100 columns max.
+- Run scripts/format.sh before committing.
 
 If .clang-format and this document disagree, .clang-format wins. If both
 disagree with the Linux style, the Linux style wins — unless a Decision says
@@ -103,10 +103,10 @@ Refs: Decision 007 in DECISIONS_KERNEL.md
 
 All PRs must pass:
 
-· make test — unit tests.
-· make test-integration — boot in QEMU (when implemented; see Phase 9 of
+- make test — unit tests.
+- make test-integration — boot in QEMU (when implemented; see Phase 9 of
   docs/ROADMAP.md).
-· make bench — latency benchmarks (when implemented; see Phase 12 of
+- make bench — latency benchmarks (when implemented; see Phase 12 of
   docs/ROADMAP.md).
 
 Benchmarks in CI are not authoritative. Latency benchmarks require a
@@ -123,11 +123,11 @@ and include the numbers in the PR description. See "Latency policy" below.
 
 If your change touches any of the following paths:
 
-· kernel/src/sched/
-· kernel/src/irq/
-· kernel/src/time/
-· arch/*/interrupts/
-· arch/*/timers/
+- kernel/src/sched/
+- kernel/src/irq/
+- kernel/src/time/
+- arch/*/interrupts/
+- arch/*/timers/
 
 You must include before/after latency measurements in the PR description.
 This is required by Decision 011 in docs/DECISIONS_KERNEL.md and detailed in
@@ -135,12 +135,12 @@ docs/COMMITS.md.
 
 The measurements must include:
 
-· p50, p99, p999 — the percentiles defined in Decision 010 in
+- p50, p99, p999 — the percentiles defined in Decision 010 in
   docs/DECISIONS_KERNEL.md.
-· Jitter — defined as p999 - p50 in the same run.
-· Time source — TSC or HPET (Decision 010).
-· Environment — CPU model, frequency, turbo state, SMT state, isolation.
-· Sample count — minimum 10,000 for p99, 100,000 for p999 (Decision 010).
+- Jitter — defined as p999 - p50 in the same run.
+- Time source — TSC or HPET (Decision 010).
+- Environment — CPU model, frequency, turbo state, SMT state, isolation.
+- Sample count — minimum 10,000 for p99, 100,000 for p999 (Decision 010).
 
 If the measurement infrastructure does not yet exist (Phase 7 of
 docs/ROADMAP.md), state so explicitly in the PR description. This is allowed
@@ -156,8 +156,8 @@ the code is correct.
 If your change implements, modifies, or invalidates a Decision, update the
 corresponding file under docs/:
 
-· docs/DECISIONS_KERNEL.md — for kernel architecture decisions.
-· docs/DECISIONS_PROJECT.md — for process decisions.
+- docs/DECISIONS_KERNEL.md — for kernel architecture decisions.
+- docs/DECISIONS_PROJECT.md — for process decisions.
 
 If your change affects a research hypothesis in docs/RESEARCH.md, note it in
 the PR description. If the change makes a hypothesis testable, say so.
