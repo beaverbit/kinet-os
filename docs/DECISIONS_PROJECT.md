@@ -1,6 +1,10 @@
 # Project Decisions
 
-Record of technical decisions for KinetOS. This file covers development process, tooling, licensing, code structure, documentation, and future phases.
+Record of technical decisions for KinetOS. This file covers development process,
+tooling, licensing, code structure, documentation, and future phases.
+
+For kernel-level decisions (architecture, memory, scheduler, drivers, timing,
+measurement, bounds), see DECISIONS_KERNEL.md.
 
 ---
 
@@ -8,33 +12,41 @@ Record of technical decisions for KinetOS. This file covers development process,
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its license. The choice is between permissive (MIT, BSD, Apache 2.0) and copyleft (GPLv2, GPLv3).
+**Context:** KinetOS needs to define its license. The choice is between
+permissive (MIT, BSD, Apache 2.0) and copyleft (GPLv2, GPLv3).
 
 **Alternatives considered:**
-1. MIT
-2. Apache 2.0
-3. GPLv2
-4. GPLv3
 
-**Decision:**
-GPLv2.
+- MIT
+- Apache 2.0
+- GPLv2
+- GPLv3
+
+**Decision:** GPLv2.
 
 **Rationale:**
-- **MIT/Apache 2.0**: permissive; allow proprietary use without contribution back; incompatible with the philosophy of an open, community-driven project.
-- **GPLv2**: copyleft; ensures modifications remain open; compatible with the C ecosystem; Linux's choice.
-- **GPLv3**: more modern, but incompatible with GPLv2 and some libraries.
+
+- MIT/Apache 2.0: permissive; allow proprietary use without contribution back;
+  incompatible with the philosophy of an open, community-driven research
+  project.
+- GPLv2: copyleft; ensures modifications remain open; compatible with the C
+  ecosystem; Linux's choice.
+- GPLv3: more modern, but incompatible with GPLv2 and some libraries.
 
 **Consequences:**
+
 - Code remains open and community-driven.
 - Contributions back are mandatory.
 - Incompatibility with Apache 2.0 code (evaluated case by case).
 - Alignment with Linux.
 
 **References:**
+
 - Linux (GPLv2)
 - FreeBSD (BSD)
 - Redox OS (MIT)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -42,30 +54,41 @@ GPLv2.
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its development model. The choice is between developing everything and benchmarking at the end, or developing incrementally with benchmarks from the start.
+**Context:** KinetOS needs to define its development model. The choice is
+between developing everything and benchmarking at the end, or developing
+incrementally with benchmarks from the start.
 
 **Alternatives considered:**
-1. Develop everything, benchmark at the end
-2. Develop incrementally, benchmark from the start
 
-**Decision:**
-Incremental development, with benchmarks from the start.
+- Develop everything, benchmark at the end
+- Develop incrementally, benchmark from the start
+
+**Decision:** Incremental development, with benchmarks from the start.
 
 **Rationale:**
-- **Benchmark at the end**: risk of discovering latency problems too late.
-- **Benchmark from the start**: validates design decisions continuously; detects regressions early; generates data for analysis.
-- Alignment with the philosophy of latency as a requirement.
+
+- Benchmark at the end: risk of discovering latency problems too late.
+- Benchmark from the start: validates design decisions continuously; detects
+  regressions early; generates data for analysis.
+- Alignment with the philosophy of latency as a requirement (Decision 009 in
+  DECISIONS_KERNEL.md).
 
 **Consequences:**
+
 - Benchmarks are part of development, not a final step.
 - Each module has an associated benchmark.
 - Latency data guides design decisions.
 - Roadmap includes benchmarks at each phase.
+- Benchmark methodology is defined in Decision 010 of DECISIONS_KERNEL.md (time
+  model and latency measurement). No benchmark is considered valid until that
+  methodology is implemented.
 
 **References:**
+
 - LITMUS^RT (real-time benchmarks)
 - Linux (scheduler benchmarks)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -73,33 +96,44 @@ Incremental development, with benchmarks from the start.
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its code structure. The choice is between a monolith of files or a modular structure with clear interfaces.
+**Context:** KinetOS needs to define its code structure. The choice is between a
+monolith of files or a modular structure with clear interfaces.
 
 **Alternatives considered:**
-1. Monolith of files
-2. Modular structure with clear interfaces
 
-**Decision:**
-Modular structure with clear interfaces, organized by subsystem.
+- Monolith of files
+- Modular structure with clear interfaces
+
+**Decision:** Modular structure with clear interfaces, organized by subsystem.
 
 **Rationale:**
-- **Monolith**: simple at first, but hard to maintain and evolve.
-- **Modular**: each subsystem has a clear interface; facilitates incremental evolution; aligned with monolithic modular architecture.
+
+- Monolith: simple at first, but hard to maintain and evolve.
+- Modular: each subsystem has a clear interface; facilitates incremental
+  evolution; aligned with monolithic modular architecture (Decision 003 in
+  DECISIONS_KERNEL.md).
 
 **Consequences:**
-- `boot/` — bootloader and linker script.
+
+- `boot/` — bootloader stubs and linker script.
 - `kernel/` — kernel code.
 - `kernel/src/memory/` — memory management.
 - `kernel/src/sched/` — scheduler.
-- `kernel/src/drivers/` — drivers.
+- `kernel/src/drivers/` — device drivers.
+- `kernel/src/time/` — time model and timestamp API (Decision 010 in
+  DECISIONS_KERNEL.md).
 - `userspace/` — user space code.
+- `services/` — filesystem and network stacks running outside the kernel core
+  (Decision 008 in DECISIONS_KERNEL.md).
 - `docs/` — documentation.
 - `scripts/` — build and run scripts.
 
 **References:**
+
 - Linux (modular)
 - SerenityOS (modular)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -107,33 +141,38 @@ Modular structure with clear interfaces, organized by subsystem.
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its build system. The choice is between Makefile, CMake, Ninja, or a custom build system.
+**Context:** KinetOS needs to define its build system. The choice is between
+Makefile, CMake, Ninja, or a custom build system.
 
 **Alternatives considered:**
-1. Makefile
-2. CMake
-3. Ninja
-4. Custom build system
 
-**Decision:**
-Makefile.
+- Makefile
+- CMake
+- Ninja
+- Custom build system
+
+**Decision:** Makefile.
 
 **Rationale:**
-- **Makefile**: simple, universal, standard in kernel projects; full control.
-- **CMake**: complex for a kernel; unnecessary overhead.
-- **Ninja**: fast, but generated by another system.
-- **Custom**: unnecessary scope.
+
+- Makefile: simple, universal, standard in kernel projects; full control.
+- CMake: complex for a kernel; unnecessary overhead.
+- Ninja: fast, but generated by another system.
+- Custom: unnecessary scope.
 
 **Consequences:**
-- Makefile defines targets: `build`, `run`, `debug`, `clean`.
+
+- Makefile defines targets: build, run, debug, clean, benchmark-latency.
 - Integration with GCC, NASM, LD, and QEMU.
 - Full control over compilation flags.
 
 **References:**
+
 - Linux (Kbuild)
 - xv6 (Makefile)
 - SerenityOS (Makefile + CMake)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -141,34 +180,44 @@ Makefile.
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its testing and debugging environment. The choice is between real hardware, QEMU, Bochs, VirtualBox, and GDB.
+**Context:** KinetOS needs to define its testing and debugging environment. The
+choice is between real hardware, QEMU, Bochs, VirtualBox, and GDB.
 
 **Alternatives considered:**
-1. Real hardware
-2. QEMU + GDB
-3. Bochs
-4. VirtualBox
 
-**Decision:**
-QEMU for emulation, GDB for debugging.
+- Real hardware
+- QEMU + GDB
+- Bochs
+- VirtualBox
+
+**Decision:** QEMU for emulation, GDB for debugging.
 
 **Rationale:**
-- **Real hardware**: risky, hard to debug, slow to iterate.
-- **QEMU**: mature emulator, x86_64 support, GDB debugging, fast, open source.
-- **GDB**: complete inspection of registers, memory, stack; breakpoints; step-by-step.
-- **Bochs**: good for debugging, but slow.
-- **VirtualBox**: focused on virtualization, not kernel development.
+
+- Real hardware: risky, hard to debug, slow to iterate.
+- QEMU: mature emulator, x86_64 support, GDB debugging, fast, open source.
+- GDB: complete inspection of registers, memory, stack; breakpoints;
+  step-by-step.
+- Bochs: good for debugging, but slow.
+- VirtualBox: focused on virtualization, not kernel development.
 
 **Consequences:**
+
 - Development and testing in QEMU.
 - Debugging with GDB connected to QEMU.
 - Tests on real hardware only at milestones.
 - Fast iteration.
+- Timing measurements in QEMU are marked "emulated" and do not replace
+  measurements on real hardware (Decision 010 in DECISIONS_KERNEL.md).
+- QEMU does not reproduce SMI, turbo boost, or DRAM refresh behavior of real
+  hardware. Benchmarks that depend on these effects require real hardware.
 
 **References:**
+
 - OSDev Wiki (QEMU + GDB)
 - SerenityOS (QEMU + GDB)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -176,35 +225,40 @@ QEMU for emulation, GDB for debugging.
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its version control and hosting. The choice is between Git, Mercurial, SVN, and GitHub, GitLab, Codeberg, self-hosted.
+**Context:** KinetOS needs to define its version control and hosting. The choice
+is between Git, Mercurial, SVN, and GitHub, GitLab, Codeberg, self-hosted.
 
 **Alternatives considered:**
-1. Git + GitHub
-2. Git + GitLab
-3. Git + Codeberg
-4. Mercurial / SVN
-5. Self-hosted
 
-**Decision:**
-Git for version control, GitHub for hosting.
+- Git + GitHub
+- Git + GitLab
+- Git + Codeberg
+- Mercurial / SVN
+- Self-hosted
+
+**Decision:** Git for version control, GitHub for hosting.
 
 **Rationale:**
-- **Git**: industry standard; mature tools.
-- **GitHub**: largest community; visibility; GitHub Actions.
-- **GitLab**: good, but less visibility for open source.
-- **Codeberg**: ethical, but less visibility.
-- **Self-hosted**: unnecessary complexity.
+
+- Git: industry standard; mature tools.
+- GitHub: largest community; visibility; GitHub Actions.
+- GitLab: good, but less visibility for open source.
+- Codeberg: ethical, but less visibility.
+- Self-hosted: unnecessary complexity.
 
 **Consequences:**
-- Repository at `https://github.com/beaverbit/kinet-os`.
+
+- Repository at https://github.com/beaverbit/kinet-os.
 - Frequent and descriptive commits.
 - Branches for features.
-- Future CI/CD integration.
+- Future CI/CD integration (see Decision 011).
 
 **References:**
+
 - Linux (Git + GitHub)
 - SerenityOS (Git + GitHub)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -212,30 +266,35 @@ Git for version control, GitHub for hosting.
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its versioning scheme. The choice is between linear versioning, semver, or date-based.
+**Context:** KinetOS needs to define its versioning scheme. The choice is
+between linear versioning, semver, or date-based.
 
 **Alternatives considered:**
-1. Linear (v1, v2, v3)
-2. Semver (MAJOR.MINOR.PATCH)
-3. Date-based (YYYY.MM.DD)
 
-**Decision:**
-Semver.
+- Linear (v1, v2, v3)
+- Semver (MAJOR.MINOR.PATCH)
+- Date-based (YYYY.MM.DD)
+
+**Decision:** Semver.
 
 **Rationale:**
-- **Linear**: does not communicate compatibility.
-- **Semver**: communicates compatibility; industry standard.
-- **Date-based**: does not communicate compatibility.
+
+- Linear: does not communicate compatibility.
+- Semver: communicates compatibility; industry standard.
+- Date-based: does not communicate compatibility.
 
 **Consequences:**
+
 - Versions: MAJOR.MINOR.PATCH.
 - MAJOR: incompatible changes.
 - MINOR: compatible new features.
 - PATCH: compatible fixes.
 
 **References:**
+
 - Semver (https://semver.org)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -243,34 +302,44 @@ Semver.
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its language. The choice is between English, Portuguese, or both.
+**Context:** KinetOS needs to define its language. The choice is between
+English, Portuguese, or both.
 
 **Alternatives considered:**
-1. English only
-2. Portuguese only
-3. English in code, Portuguese in internal documentation
 
-**Decision:**
-English as the standard for everything: code, comments, documentation (public and internal), commit messages, issues, and pull requests.
+- English only
+- Portuguese only
+- English in code, Portuguese in internal documentation
+
+**Decision:** English as the standard for everything: code, comments,
+documentation (public and internal), commit messages, issues, and pull requests.
 
 **Rationale:**
-- **English only**: industry standard; facilitates international contributors; avoids translation overhead; keeps the project consistent.
-- **Portuguese only**: limits the project's reach; makes international contributions impossible.
-- **Mixed (English in code, Portuguese in docs)**: creates inconsistency; requires contributors to know both languages; adds maintenance burden.
+
+- English only: industry standard; facilitates international contributors;
+  avoids translation overhead; keeps the project consistent.
+- Portuguese only: limits the project's reach; makes international
+  contributions impossible.
+- Mixed: creates inconsistency; requires contributors to know both languages;
+  adds maintenance burden.
 
 **Consequences:**
+
 - Code, comments, README, ADRs, and all documentation in English.
 - Commit messages in English.
 - Issues and pull requests in English.
 - Easier onboarding for international contributors.
 - No language switching during development.
-- Slight overhead for solo development (writing in a non-native language), but long-term gain in reach and consistency.
+- Slight overhead for solo development (writing in a non-native language), but
+  long-term gain in reach and consistency.
 
 **References:**
+
 - Linux (English)
 - SerenityOS (English)
 - Zephyr (English)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -278,31 +347,38 @@ English as the standard for everything: code, comments, documentation (public an
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its code philosophy. The choice is between aggressive optimization or simplicity and clarity.
+**Context:** KinetOS needs to define its code philosophy. The choice is between
+aggressive optimization or simplicity and clarity.
 
 **Alternatives considered:**
-1. Aggressive optimization
-2. Simplicity and clarity
-3. Both
 
-**Decision:**
-Simplicity and clarity, with optimization when necessary and measurable.
+- Aggressive optimization
+- Simplicity and clarity
+- Both
+
+**Decision:** Simplicity and clarity, with optimization when necessary and
+measurable.
 
 **Rationale:**
-- **Aggressive optimization**: risk of bugs; hard to maintain.
-- **Simplicity and clarity**: easy to understand; easy to maintain; foundation for future optimization.
-- **Both**: balance.
+
+- Aggressive optimization: risk of bugs; hard to maintain.
+- Simplicity and clarity: easy to understand; easy to maintain; foundation for
+  future optimization.
+- Both: balance.
 
 **Consequences:**
+
 - Clear and readable code.
 - Optimization guided by benchmarks, not intuition.
 - Comments explain the "why", not the "what".
 - Facilitates evolution and contributors.
 
 **References:**
+
 - Linux (simplicity + optimization)
 - SerenityOS (clarity)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -310,29 +386,34 @@ Simplicity and clarity, with optimization when necessary and measurable.
 
 **Status:** Accepted
 
-**Context:**
-KinetOS needs to define its evolution philosophy. The choice is between rewriting or incremental evolution.
+**Context:** KinetOS needs to define its evolution philosophy. The choice is
+between rewriting or incremental evolution.
 
 **Alternatives considered:**
-1. Rewriting
-2. Incremental evolution
 
-**Decision:**
-Incremental evolution.
+- Rewriting
+- Incremental evolution
+
+**Decision:** Incremental evolution.
 
 **Rationale:**
-- **Rewriting**: loss of knowledge; risk of regression.
-- **Incremental evolution**: maintains knowledge; adds features without breaking.
+
+- Rewriting: loss of knowledge; risk of regression.
+- Incremental evolution: maintains knowledge; adds features without breaking.
 
 **Consequences:**
+
 - Features added incrementally.
 - Benchmarks ensure no regression.
 - Solid foundation before expanding.
 - Facilitates contributors.
 
 **References:**
+
 - Linux (incremental evolution)
 - SerenityOS (incremental evolution)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -340,28 +421,36 @@ Incremental evolution.
 
 **Status:** Deferred
 
-**Context:**
-KinetOS needs to define its strategy for CI/CD and contributors. The choice is between setting up now or deferring.
+**Context:** KinetOS needs to define its strategy for CI/CD and contributors.
+The choice is between setting up now or deferring.
 
 **Alternatives considered:**
-1. Set up now
-2. Defer to future phase
 
-**Decision:**
-Defer to future phase.
+- Set up now
+- Defer to future phase
+
+**Decision:** Defer to future phase.
 
 **Rationale:**
-- **Now**: unnecessary overhead at the start; focus on code.
-- **Future**: when the project has contributors and stability.
+
+- Now: unnecessary overhead at the start; focus on code.
+- Future: when the project has contributors and stability.
 
 **Consequences:**
+
 - Focus on code and benchmarks at the start.
 - CI/CD and contributors evaluated in the future.
 - GitHub Actions evaluated in the future.
+- When CI is introduced, latency benchmarks must run on dedicated hardware, not
+  shared CI runners, to produce meaningful numbers (Decision 010 in
+  DECISIONS_KERNEL.md).
 
 **References:**
+
 - Linux
 - SerenityOS
+
+**Date:** 2026-10-01
 
 ---
 
@@ -369,37 +458,66 @@ Defer to future phase.
 
 **Status:** Deferred
 
-**Context:**
-KinetOS has x86_64 as its initial target architecture (see `DECISIONS_KERNEL.md`, Decision 004). However, the embedded systems market is dominated by ARM Cortex-M microcontrollers (STM32, nRF, RP2040, LPC) and, increasingly, RISC-V MCUs (ESP32-C3, SiFive). A path to embedded targets would expand the project's applicability to critical embedded systems, which are already cited as a use case in Decision 002.
+**Context:** KinetOS has x86_64 as its initial target architecture (see
+Decision 004 in DECISIONS_KERNEL.md). However, the embedded systems market is
+dominated by ARM Cortex-M microcontrollers (STM32, nRF, RP2040, LPC) and,
+increasingly, RISC-V MCUs (ESP32-C3, SiFive). A path to embedded targets would
+expand the project's applicability to critical embedded systems, which are
+already cited as a use case in Decision 002 of DECISIONS_KERNEL.md.
 
 **Alternatives considered:**
-1. Stay x86_64-only
-2. Add ARM Cortex-M as secondary target
-3. Add RISC-V as secondary target
-4. Add both ARM and RISC-V
 
-**Decision:**
-Defer embedded target support to a future phase. When pursued, prioritize ARM Cortex-M (specifically Cortex-M4/M7, which have optional FPU and MPU but no MMU) as the first embedded target, followed by RISC-V.
+- Stay x86_64-only
+- Add ARM Cortex-M as secondary target
+- Add RISC-V as secondary target
+- Add both ARM and RISC-V
+
+**Decision:** Defer embedded target support to a future phase. When pursued,
+prioritize ARM Cortex-M (specifically Cortex-M4/M7, which have optional FPU and
+MPU but no MMU) as the first embedded target, followed by RISC-V.
 
 **Rationale:**
-- **x86_64-only**: limits applicability to servers and desktops; excludes the embedded market entirely.
-- **ARM Cortex-M**: dominant in embedded; abundant documentation; QEMU supports Cortex-M (e.g., `qemu-system-arm -M mps2-an385`); MPU (not MMU) means a different memory model, but that aligns with the project's philosophy of simplicity and predictability.
-- **RISC-V**: promising and increasingly relevant, but the toolchain and emulation ecosystem are still less mature than ARM's for bare-metal kernel development.
-- **Both at once**: infinite scope; violates Decision 004 of `DECISIONS_KERNEL.md` (focus on one architecture to accelerate development).
-- **Deferring**: the x86_64 port must reach a stable state (boot, memory, scheduler, syscalls, userspace) before a second architecture is attempted. Porting prematurely would multiply maintenance cost without a working reference.
+
+- x86_64-only: limits applicability to servers and desktops; excludes the
+  embedded market entirely.
+- ARM Cortex-M: dominant in embedded; abundant documentation; QEMU supports
+  Cortex-M (e.g., `qemu-system-arm -M mps2-an385`); MPU (not MMU) means a
+  different memory model, but that aligns with the project's philosophy of
+  simplicity and predictability.
+- RISC-V: promising and increasingly relevant, but the toolchain and emulation
+  ecosystem are still less mature than ARM's for bare-metal kernel development.
+- Both at once: infinite scope; violates Decision 004 of DECISIONS_KERNEL.md
+  (focus on one architecture to accelerate development).
+- Deferring: the x86_64 port must reach a stable state (boot, memory, scheduler,
+  syscalls, userspace) before a second architecture is attempted. Porting
+  prematurely would multiply maintenance cost without a working reference.
+- MCU as a stronger research target: on Cortex-M, there is no SMI, no turbo
+  boost, and no opaque firmware. The "provable bounds" vocabulary (see
+  Decision 012 in DECISIONS_KERNEL.md) becomes appropriate again. MCU may be a
+  better primary research target than x86_64 commodity.
 
 **Consequences:**
-- The kernel must not assume x86_64-specific features in architecture-independent code (e.g., no reliance on 4-level paging in the scheduler).
-- A HAL (Hardware Abstraction Layer) will need to be introduced before the first port.
-- The memory model for Cortex-M will differ: no paging, optional MPU, flat physical address space.
+
+- The kernel must not assume x86_64-specific features in architecture-independent
+  code (e.g., no reliance on 4-level paging in the scheduler).
+- A HAL (Hardware Abstraction Layer) will need to be introduced before the first
+  port.
+- The memory model for Cortex-M will differ: no paging, optional MPU, flat
+  physical address space.
 - Drivers will need a separate implementation for each architecture.
-- Benchmarks must be comparable across architectures (same workload, same metrics: p99/p999, jitter).
+- Benchmarks must be comparable across architectures (same workload, same
+  metrics: p99/p999, jitter).
+- The time model (Decision 010 in DECISIONS_KERNEL.md) must be portable: on
+  Cortex-M, the source is typically the DWT cycle counter, not the TSC.
 
 **References:**
+
 - Zephyr (multi-architecture RTOS)
 - FreeRTOS (Cortex-M focused)
 - QEMU (Cortex-M emulation)
 - ARMv7-M Architecture Reference Manual
+
+**Date:** 2026-10-01
 
 ---
 
@@ -407,36 +525,56 @@ Defer embedded target support to a future phase. When pursued, prioritize ARM Co
 
 **Status:** Deferred
 
-**Context:**
-KinetOS on x86_64 assumes a userspace with syscalls, separate address spaces, and a full memory management subsystem. Microcontrollers do not have the resources for a traditional userspace: no MMU (only MPU on some Cortex-M), limited RAM (often 64–512 KB), limited flash (often 256 KB–2 MB). An embedded mode is needed to make KinetOS viable on MCUs.
+**Context:** KinetOS on x86_64 assumes a userspace with syscalls, separate
+address spaces, and a full memory management subsystem. Microcontrollers do not
+have the resources for a traditional userspace: no MMU (only MPU on some
+Cortex-M), limited RAM (often 64–512 KB), limited flash (often 256 KB–2 MB). An
+embedded mode is needed to make KinetOS viable on MCUs.
 
 **Alternatives considered:**
-1. Full userspace on MCU (unfeasible)
-2. Single binary with kernel + application linked together
-3. no_std Rust-style approach in C (freestanding)
-4. Separate lightweight RTOS mode
 
-**Decision:**
-Defer embedded mode to a future phase. When pursued, implement a freestanding C mode where the kernel and application are compiled and linked into a single binary, with no userspace, no syscalls, and no dynamic memory allocation after boot.
+- Full userspace on MCU (unfeasible)
+- Single binary with kernel + application linked together
+- `no_std` Rust-style approach in C (freestanding)
+- Separate lightweight RTOS mode
+
+**Decision:** Defer embedded mode to a future phase. When pursued, implement a
+freestanding C mode where the kernel and application are compiled and linked
+into a single binary, with no userspace, no syscalls, and no dynamic memory
+allocation after boot.
 
 **Rationale:**
-- **Full userspace on MCU**: requires MMU and memory isolation, which Cortex-M does not have. Even with MPU, the overhead and complexity contradict the project's simplicity philosophy.
-- **Single binary**: eliminates IPC and syscall overhead entirely; the application runs in privileged mode (or a single unprivileged task); latency is minimized.
-- **no_std-style in C**: C is already freestanding-compatible; the project avoids libc dependencies where possible; static allocation is preferred.
-- **Separate RTOS mode**: would duplicate the scheduler and violate the "one kernel, multiple targets" philosophy.
+
+- Full userspace on MCU: requires MMU and memory isolation, which Cortex-M does
+  not have. Even with MPU, the overhead and complexity contradict the project's
+  simplicity philosophy.
+- Single binary: eliminates IPC and syscall overhead entirely; the application
+  runs in privileged mode (or a single unprivileged task); latency is minimized.
+- `no_std`-style in C: C is already freestanding-compatible; the project avoids
+  libc dependencies where possible; static allocation is preferred.
+- Separate RTOS mode: would duplicate the scheduler and violate the "one kernel,
+  multiple targets" philosophy.
 
 **Consequences:**
+
 - A new build target (e.g., `make embedded`) produces a single binary.
 - The scheduler runs directly on the application's tasks; no process isolation.
 - Memory is statically allocated at compile time; no heap after boot.
 - Drivers are linked into the binary, not loaded dynamically.
-- Debugging is done via SWD/JTAG, not GDB over QEMU (though QEMU Cortex-M is still useful for early bring-up).
-- The embedded mode shares the scheduler and core kernel logic with x86_64, but not the memory subsystem or userspace.
+- Debugging is done via SWD/JTAG, not GDB over QEMU (though QEMU Cortex-M is
+  still useful for early bring-up).
+- The embedded mode shares the scheduler and core kernel logic with x86_64, but
+  not the memory subsystem or userspace.
+- The driver WCET contract (Decision 011 in DECISIONS_KERNEL.md) may be disabled
+  by build flag to save resources, but declared WCET remains mandatory.
 
 **References:**
+
 - FreeRTOS (single binary model)
 - Zephyr (supports both monolithic and userspace modes)
 - Embedded Rust (`no_std` philosophy, adapted to C)
+
+**Date:** 2026-10-01
 
 ---
 
@@ -444,39 +582,62 @@ Defer embedded mode to a future phase. When pursued, implement a freestanding C 
 
 **Status:** Deferred
 
-**Context:**
-KinetOS cites "critical embedded systems" and "edge computing" as use cases (Decision 002 - DECISIONS_KERNEL.md). Industrial and IoT deployments rely on specific protocols: MQTT (messaging), Modbus (industrial control), CAN (automotive and industrial), CoAP (constrained IoT), and OPC-UA (industrial interoperability). Supporting these protocols would make KinetOS directly applicable to industrial and IoT scenarios.
+**Context:** KinetOS cites "critical embedded systems" and "edge computing" as
+use cases (Decision 002 in DECISIONS_KERNEL.md). Industrial and IoT deployments
+rely on specific protocols: MQTT (messaging), Modbus (industrial control), CAN
+(automotive and industrial), CoAP (constrained IoT), and OPC-UA (industrial
+interoperability). Supporting these protocols would make KinetOS directly
+applicable to industrial and IoT scenarios.
 
 **Alternatives considered:**
-1. No protocol support (kernel only)
-2. Core protocols in the kernel
-3. Modular protocols, opt-in at build time
-4. Userspace protocol stack (on x86_64 only)
 
-**Decision:**
-Defer protocol support to a future phase. When pursued, implement protocols as modular, opt-in components, compiled in only when enabled in the build configuration, and usable in both x86_64 and embedded modes.
+- No protocol support (kernel only)
+- Core protocols in the kernel
+- Modular protocols, opt-in at build time
+- Userspace protocol stack (on x86_64 only)
+
+**Decision:** Defer protocol support to a future phase. When pursued, implement
+protocols as modular, opt-in components, compiled in only when enabled in the
+build configuration, and usable in both x86_64 and embedded modes.
 
 **Rationale:**
-- **No protocol support**: keeps the kernel minimal, but excludes the industrial/IoT use case entirely.
-- **Core protocols in the kernel**: violates the project's simplicity philosophy; bloats the kernel; introduces dependencies (e.g., TCP/IP stack) that may not be needed.
-- **Modular, opt-in**: aligns with Decision 003 of `DECISIONS_KERNEL.md` (monolithic modular) and Decision 003 of this file (modular by subsystem); keeps the kernel minimal by default; allows targeted builds for specific deployments.
-- **Userspace-only**: would exclude embedded mode, where userspace does not exist.
+
+- No protocol support: keeps the kernel minimal, but excludes the industrial/IoT
+  use case entirely.
+- Core protocols in the kernel: violates the project's simplicity philosophy;
+  bloats the kernel; introduces dependencies (e.g., TCP/IP stack) that may not
+  be needed.
+- Modular, opt-in: aligns with Decision 003 of DECISIONS_KERNEL.md (monolithic
+  modular) and Decision 003 of this file (modular by subsystem); keeps the
+  kernel minimal by default; allows targeted builds for specific deployments.
+- Userspace-only: would exclude embedded mode, where userspace does not exist.
 
 **Consequences:**
+
 - Protocols are organized under a new subsystem (e.g., `kernel/src/proto/`).
-- Each protocol has a clear interface and can be enabled/disabled via build flags.
-- A minimal network stack (or integration with an existing one, e.g., lwIP) will be required for IP-based protocols (MQTT, CoAP).
+- Each protocol has a clear interface and can be enabled/disabled via build
+  flags.
+- A minimal network stack (or integration with an existing one, e.g., lwIP) will
+  be required for IP-based protocols (MQTT, CoAP).
 - CAN and Modbus may be implemented directly on top of hardware drivers.
 - Benchmarks must measure protocol overhead and its impact on tail latency.
 - The default build remains protocol-free to preserve the minimal kernel.
 
 **References:**
+
 - lwIP (lightweight IP stack for embedded)
 - Eclipse Paho (MQTT client implementations)
 - FreeMODBUS (Modbus implementation)
 - SocketCAN (Linux CAN subsystem, architectural reference)
 
+**Date:** 2026-10-01
+
 ---
 
-- **Date:** 2026-10-01
-- **End of document.**
+## Note on numbering
+
+Decisions 001–014 in this file share their numbers with Decisions 001–014 in
+DECISIONS_KERNEL.md. The two files are independent records; references across
+files always specify the file, e.g., "Decision 010 in DECISIONS_KERNEL.md".
+
+**End of document.**
