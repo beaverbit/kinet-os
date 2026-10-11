@@ -44,7 +44,7 @@ make
 make run
 ```
 
-Debug
+### Debug
 
 ```sh
 make debug
@@ -54,7 +54,7 @@ gdb -ex "target remote :1234"
 
 ---
 
-Coding style
+## Coding style
 
 · Follow the Linux kernel coding style, adapted by .clang-format.
 · 4 spaces, no tabs.
@@ -67,7 +67,7 @@ otherwise.
 
 ---
 
-Commit messages
+## Commit messages
 
 Use Conventional Commits. The full
 convention, including types, scopes, breaking changes, and the special rules for
@@ -99,7 +99,7 @@ Refs: Decision 007 in DECISIONS_KERNEL.md
 
 ---
 
-Testing
+## Testing
 
 All PRs must pass:
 
@@ -119,7 +119,7 @@ and include the numbers in the PR description. See "Latency policy" below.
 
 ---
 
-Latency policy
+## Latency policy
 
 If your change touches any of the following paths:
 
@@ -151,7 +151,7 @@ the code is correct.
 
 ---
 
-Documentation
+## Documentation
 
 If your change implements, modifies, or invalidates a Decision, update the
 corresponding file under docs/:
@@ -192,14 +192,14 @@ for a new Decision. Do not send a PR that contradicts a Decision.
 
 ---
 
-License
+## License
 
 By contributing, you agree that your contributions will be licensed under
 GPLv2 (see LICENSE).
 
 ---
 
-References
+## References
 
 · README.md
 · docs/DECISIONS_KERNEL.md
