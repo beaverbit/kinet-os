@@ -172,9 +172,9 @@ make run
 
 Testing
 
-· make test — unit tests
-· make test-integration — boot in QEMU
-· make benchmark-latency — latency benchmarks (p99/p999, jitter)
+- make test — unit tests
+- make test-integration — boot in QEMU
+- make benchmark-latency — latency benchmarks (p99/p999, jitter)
 
 Latency benchmarks require a controlled environment: CPU frequency pinned,
 turbo disabled, and no other workloads on the machine. Results obtained in
@@ -182,7 +182,7 @@ QEMU are marked "emulated" and do not replace measurements on real hardware.
 
 ---
 
-Contributing
+## Contributing
 
 KinetOS is a research project. Contributions are welcome, but the bar for
 changes that touch the critical path (kernel/sched/, kernel/irq/,
@@ -196,12 +196,12 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/COMMITS.md`](docs/COMMITS.md
 
 ---
 
-Security
+## Security
 
 See [`SECURITY.md`](SECURITY.md) for the vulnerability reporting policy.
 
 ---
 
-License
+## License
 
 GPLv2 — see LICENSE.
