@@ -73,7 +73,7 @@ Use Conventional Commits. The full
 convention, including types, scopes, breaking changes, and the special rules for
 latency-impacting changes, is in docs/COMMITS.md.
 
-Quick reference:
+### Quick reference:
 
 ```
 <type>[optional scope][!]: <description>
@@ -83,7 +83,7 @@ Quick reference:
 [optional footer(s)]
 ```
 
-Example:
+### Example:
 
 ```
 perf(sched): reduce p999 wakeup latency by 12%
@@ -167,7 +167,7 @@ Diagrams use Mermaid when possible.
 
 ---
 
-What will be rejected
+## What will be rejected
 
 The following changes will be rejected, regardless of code quality:
 
